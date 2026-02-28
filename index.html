@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Torus — Men's Circle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1714; overflow: hidden; }
+    input:focus { outline: none; }
+    button:focus { outline: none; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #1a1714; }
+    ::-webkit-scrollbar-thumb { background: #3a332c; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4a433c; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const COLORS = {
+      bg: "#1a1714",
+      bgCard: "#231f1b",
+      bgHover: "#2d2823",
+      bgActive: "#352f29",
+      accent: "#c4956a",
+      accentMuted: "#8b6d4f",
+      text: "#e8e0d6",
+      textMuted: "#9a8e80",
+      textDim: "#6b6058",
+      border: "#3a332c",
+      success: "#6b8f71",
+    };
+
+    const FONTS = {
+      display: "'Cormorant Garamond', serif",
+      body: "'DM Sans', sans-serif",
+      mono: "'JetBrains Mono', monospace",
+    };
+
+    const CALENDAR_EVENTS = [
+      { id: 1, title: "Torus Circle", date: "2026-03-05", time: "7:00 PM", location: "Charlie's Place", type: "circle", description: "Theme: What are you avoiding?" },
+      { id: 2, title: "Torus Circle", date: "2026-03-19", time: "7:00 PM", location: "Charlie's Place", type: "circle", description: "Theme: The weight you carry for others" },
+      { id: 3, title: "Torus Circle", date: "2026-04-02", time: "7:00 PM", location: "Charlie's Place", type: "circle", description: "Open floor" },
+      { id: 4, title: "Torus Circle", date: "2026-04-16", time: "7:00 PM", location: "Charlie's Place", type: "circle", description: "Theme: Fatherhood & identity" },
+    ];
+
+    const BLOG_POSTS = [
+      { id: 1, title: "The Axis Is Not the Apex", date: "Feb 24, 2026", excerpt: "Why leading a men's group doesn't mean being above it. The torus teaches us that energy flows through the center, not from the top.", readTime: "4 min", tag: "Leadership" },
+      { id: 2, title: "What Happens Between Meetings", date: "Feb 17, 2026", excerpt: "The real work isn't in the circle. It's Tuesday at 2pm when the thing you said out loud won't stop echoing.", readTime: "3 min", tag: "Practice" },
+      { id: 3, title: "Performing Vulnerability", date: "Feb 10, 2026", excerpt: "There's a version of 'being open' that's just another mask. How to tell the difference.", readTime: "5 min", tag: "Shadow" },
+    ];
+
+    const VIDEOS = [
+      { id: 1, title: "The Perimeter Walk", duration: "12:34", thumbnail: "\u{1F3D4}", date: "Feb 20, 2026", description: "Walking around the cabin — seeing all four windows before choosing your position." },
+      { id: 2, title: "Silence as Practice", duration: "8:21", thumbnail: "\u{1F332}", date: "Feb 13, 2026", description: "Why the quiet guy in the circle might be doing the hardest work." },
+      { id: 3, title: "Frame 1,247 — Seeing What's Real", duration: "15:47", thumbnail: "\u{1F3AC}", date: "Feb 6, 2026", description: "Borrowed from filmmaking: the moment between performances." },
+    ];
+
+    const PODCASTS = [
+      { id: 1, title: "Ep. 03 — The Man You Perform", duration: "34:12", date: "Feb 22, 2026", description: "Every man has a character he plays. What happens when the audience leaves?" },
+      { id: 2, title: "Ep. 02 — Why Men Don't Ask", duration: "28:45", date: "Feb 8, 2026", description: "It's not that we don't need help. It's that asking feels like a structural failure." },
+      { id: 3, title: "Ep. 01 — What Is Torus?", duration: "22:10", date: "Jan 25, 2026", description: "The geometry. The group. The reason we sit in a circle and not in rows." },
+    ];
+
+    const NOTIFICATIONS = [
+      { id: 1, message: "Next circle: March 5th — Theme: What are you avoiding?", time: "2 days ago", unread: true },
+      { id: 2, message: "New post: 'The Axis Is Not the Apex'", time: "3 days ago", unread: true },
+      { id: 3, message: "New video: 'The Perimeter Walk' is live", time: "1 week ago", unread: false },
+    ];
+
+    const MEMBERS = [
+      { name: "Charlie H.", role: "Facilitator", since: "Founder" },
+      { name: "Dave M.", role: "Member", since: "Sep 2025" },
+      { name: "Marcus T.", role: "Member", since: "Oct 2025" },
+      { name: "Ryan K.", role: "Member", since: "Oct 2025" },
+      { name: "James L.", role: "Member", since: "Nov 2025" },
+      { name: "Steve P.", role: "Member", since: "Dec 2025" },
+      { name: "Andre W.", role: "Member", since: "Jan 2026" },
+      { name: "Tom R.", role: "Member", since: "Feb 2026" },
+    ];
+
+    const TorusIcon = ({ size = 32, color = COLORS.accent }) => (
+      <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+        <ellipse cx="50" cy="50" rx="45" ry="20" stroke={color} strokeWidth="2" opacity="0.4" />
+        <ellipse cx="50" cy="50" rx="20" ry="45" stroke={color} strokeWidth="2" opacity="0.6" />
+        <circle cx="50" cy="50" r="6" fill={color} opacity="0.8" />
+        <path d="M50 5 Q75 50 50 95 Q25 50 50 5Z" stroke={color} strokeWidth="1.5" fill="none" opacity="0.3" />
+      </svg>
+    );
+
+    const LoginScreen = ({ onLogin }) => {
+      const [email, setEmail] = useState("");
+      const [password, setPassword] = useState("");
+      const [focused, setFocused] = useState(null);
+
+      return (
+        <div style={{
+          minHeight: "100vh", background: COLORS.bg, display: "flex", alignItems: "center",
+          justifyContent: "center", fontFamily: FONTS.body, position: "relative", overflow: "hidden",
+        }}>
+          <div style={{
+            position: "absolute", width: "600px", height: "600px", borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(139,109,79,0.03) 0%, transparent 70%)",
+            top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+          }} />
+          <div style={{
+            width: "380px", padding: "48px 40px", background: COLORS.bgCard,
+            border: "1px solid " + COLORS.border, borderRadius: "2px", position: "relative", zIndex: 1,
+          }}>
+            <div style={{ textAlign: "center", marginBottom: "40px" }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+                <TorusIcon size={56} />
+              </div>
+              <h1 style={{
+                fontFamily: FONTS.display, fontSize: "32px", fontWeight: "400",
+                color: COLORS.text, margin: "0 0 6px 0", letterSpacing: "3px",
+              }}>TORUS</h1>
+              <p style={{
+                color: COLORS.textDim, fontSize: "12px", letterSpacing: "4px",
+                textTransform: "uppercase", margin: 0,
+              }}>Men's Circle</p>
+            </div>
+
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{
+                display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase",
+                color: focused === "email" ? COLORS.accent : COLORS.textDim, marginBottom: "8px",
+                transition: "color 0.3s ease",
+              }}>Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                onFocus={() => setFocused("email")} onBlur={() => setFocused(null)}
+                style={{
+                  width: "100%", padding: "12px 0", background: "transparent", border: "none",
+                  borderBottom: "1px solid " + (focused === "email" ? COLORS.accent : COLORS.border),
+                  color: COLORS.text, fontSize: "15px", fontFamily: FONTS.body,
+                  transition: "border-color 0.3s ease", boxSizing: "border-box",
+                }} />
+            </div>
+
+            <div style={{ marginBottom: "36px" }}>
+              <label style={{
+                display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase",
+                color: focused === "password" ? COLORS.accent : COLORS.textDim, marginBottom: "8px",
+                transition: "color 0.3s ease",
+              }}>Password</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                onFocus={() => setFocused("password")} onBlur={() => setFocused(null)}
+                style={{
+                  width: "100%", padding: "12px 0", background: "transparent", border: "none",
+                  borderBottom: "1px solid " + (focused === "password" ? COLORS.accent : COLORS.border),
+                  color: COLORS.text, fontSize: "15px", fontFamily: FONTS.body,
+                  transition: "border-color 0.3s ease", boxSizing: "border-box",
+                }} />
+            </div>
+
+            <button onClick={onLogin}
+              onMouseEnter={(e) => { e.target.style.background = COLORS.accent; e.target.style.color = COLORS.bg; }}
+              onMouseLeave={(e) => { e.target.style.background = "transparent"; e.target.style.color = COLORS.accent; }}
+              style={{
+                width: "100%", padding: "14px", background: "transparent",
+                border: "1px solid " + COLORS.accent, color: COLORS.accent, fontSize: "12px",
+                letterSpacing: "3px", textTransform: "uppercase", fontFamily: FONTS.body,
+                cursor: "pointer", transition: "all 0.3s ease", borderRadius: "2px",
+              }}>Enter</button>
+
+            <p style={{ textAlign: "center", marginTop: "24px", fontSize: "13px", color: COLORS.textDim }}>
+              <span style={{ cursor: "pointer", borderBottom: "1px solid " + COLORS.textDim }}>Forgot password?</span>
+            </p>
+          </div>
+        </div>
+      );
+    };
+
+    const NavItem = ({ icon, label, active, onClick, badge }) => (
+      <button onClick={onClick} style={{
+        display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px",
+        background: active ? COLORS.bgActive : "transparent", border: "none", borderRadius: "2px",
+        color: active ? COLORS.accent : COLORS.textMuted, fontSize: "13px", fontFamily: FONTS.body,
+        cursor: "pointer", width: "100%", textAlign: "left", transition: "all 0.2s ease",
+        position: "relative", letterSpacing: "0.5px",
+      }}>
+        <span style={{ fontSize: "18px", width: "24px", textAlign: "center" }}>{icon}</span>
+        {label}
+        {badge > 0 && (
+          <span style={{
+            position: "absolute", right: "12px", background: COLORS.accent, color: COLORS.bg,
+            fontSize: "10px", fontWeight: "700", width: "18px", height: "18px", borderRadius: "50%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>{badge}</span>
+        )}
+      </button>
+    );
+
+    const SectionHeader = ({ title, subtitle }) => (
+      <div style={{ marginBottom: "32px" }}>
+        <h2 style={{ fontFamily: FONTS.display, fontSize: "28px", fontWeight: "400", color: COLORS.text, margin: "0 0 4px 0" }}>{title}</h2>
+        {subtitle && <p style={{ color: COLORS.textDim, fontSize: "14px", margin: 0 }}>{subtitle}</p>}
+      </div>
+    );
+
+    const Card = ({ children, highlight, onClick }) => {
+      const [hovered, setHovered] = useState(false);
+      return (
+        <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+          style={{
+            padding: "24px", background: COLORS.bgCard,
+            border: "1px solid " + (highlight ? COLORS.accentMuted + "40" : hovered ? COLORS.accentMuted : COLORS.border),
+            borderRadius: "2px", cursor: onClick ? "pointer" : "default", transition: "border-color 0.3s ease",
+          }}>{children}</div>
+      );
+    };
+
+    const CalendarView = () => (
+      <div>
+        <SectionHeader title="Upcoming Circles" subtitle="Twice monthly · Thursday evenings" />
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {CALENDAR_EVENTS.map((event, i) => (
+            <Card key={event.id}>
+              <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
+                <div style={{ minWidth: "56px", textAlign: "center", padding: "8px 0" }}>
+                  <div style={{ fontFamily: FONTS.mono, fontSize: "11px", color: COLORS.textDim, letterSpacing: "1px", textTransform: "uppercase" }}>
+                    {new Date(event.date + "T12:00:00").toLocaleDateString("en-US", { month: "short" })}
+                  </div>
+                  <div style={{ fontFamily: FONTS.display, fontSize: "32px", color: i === 0 ? COLORS.accent : COLORS.text, lineHeight: "1" }}>
+                    {new Date(event.date + "T12:00:00").getDate()}
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontFamily: FONTS.body, fontSize: "15px", fontWeight: "500", color: COLORS.text, margin: "0 0 6px 0" }}>{event.title}</h3>
+                  <p style={{ fontSize: "13px", color: COLORS.textMuted, margin: "0 0 4px 0" }}>{event.time} · {event.location}</p>
+                  <p style={{ fontSize: "13px", color: COLORS.accent, margin: 0, fontStyle: "italic" }}>{event.description}</p>
+                </div>
+                {i === 0 && (
+                  <div style={{
+                    padding: "4px 12px", background: COLORS.accent + "15", border: "1px solid " + COLORS.accent + "30",
+                    borderRadius: "2px", fontSize: "11px", color: COLORS.accent, letterSpacing: "1px",
+                    textTransform: "uppercase", whiteSpace: "nowrap",
+                  }}>Next Up</div>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+
+    const BlogView = () => (
+      <div>
+        <SectionHeader title="Field Notes" subtitle="Writing from the center of the circle" />
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          {BLOG_POSTS.map((post) => (
+            <Card key={post.id} onClick={() => {}}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+                <span style={{ fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: COLORS.accent, fontFamily: FONTS.mono }}>{post.tag}</span>
+                <span style={{ fontSize: "12px", color: COLORS.textDim }}>{post.readTime} read</span>
+              </div>
+              <h3 style={{ fontFamily: FONTS.display, fontSize: "22px", fontWeight: "400", color: COLORS.text, margin: "0 0 10px 0", lineHeight: "1.3" }}>{post.title}</h3>
+              <p style={{ fontSize: "14px", color: COLORS.textMuted, margin: "0 0 12px 0", lineHeight: "1.6" }}>{post.excerpt}</p>
+              <span style={{ fontSize: "12px", color: COLORS.textDim }}>{post.date}</span>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+
+    const VideoView = () => (
+      <div>
+        <SectionHeader title="Video Library" subtitle="Short-form teachings between circles" />
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          {VIDEOS.map((video) => (
+            <Card key={video.id} onClick={() => {}}>
+              <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
+                <div style={{
+                  width: "100px", height: "68px", background: COLORS.bgActive, borderRadius: "2px",
+                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px",
+                  flexShrink: 0, position: "relative",
+                }}>
+                  {video.thumbnail}
+                  <div style={{
+                    position: "absolute", bottom: "4px", right: "6px", background: "rgba(0,0,0,0.7)",
+                    padding: "2px 6px", borderRadius: "2px", fontSize: "10px", color: COLORS.text, fontFamily: FONTS.mono,
+                  }}>{video.duration}</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontFamily: FONTS.body, fontSize: "15px", fontWeight: "500", color: COLORS.text, margin: "0 0 6px 0" }}>{video.title}</h3>
+                  <p style={{ fontSize: "13px", color: COLORS.textMuted, margin: "0 0 4px 0", lineHeight: "1.5" }}>{video.description}</p>
+                  <span style={{ fontSize: "12px", color: COLORS.textDim }}>{video.date}</span>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+
+    const PodcastView = () => (
+      <div>
+        <SectionHeader title="Podcast" subtitle="Long-form conversations from inside the torus" />
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {PODCASTS.map((ep) => (
+            <Card key={ep.id} onClick={() => {}}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                <h3 style={{ fontFamily: FONTS.body, fontSize: "15px", fontWeight: "500", color: COLORS.text, margin: 0 }}>{ep.title}</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "12px", color: COLORS.textDim, fontFamily: FONTS.mono }}>{ep.duration}</span>
+                  <div style={{
+                    width: "32px", height: "32px", borderRadius: "50%", border: "1px solid " + COLORS.accent,
+                    display: "flex", alignItems: "center", justifyContent: "center", color: COLORS.accent,
+                    fontSize: "12px", flexShrink: 0,
+                  }}>{"\u25B6"}</div>
+                </div>
+              </div>
+              <p style={{ fontSize: "13px", color: COLORS.textMuted, margin: "0 0 8px 0", lineHeight: "1.5" }}>{ep.description}</p>
+              <span style={{ fontSize: "12px", color: COLORS.textDim }}>{ep.date}</span>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+
+    const MembersView = () => (
+      <div>
+        <SectionHeader title="The Circle" subtitle={MEMBERS.length + " men · Batavia, IL"} />
+        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+          {MEMBERS.map((member, i) => (
+            <Card key={i}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "0" }}>
+                <div style={{
+                  width: "40px", height: "40px", borderRadius: "50%",
+                  background: i === 0 ? COLORS.accent + "20" : COLORS.bgActive,
+                  border: "1px solid " + (i === 0 ? COLORS.accent + "40" : COLORS.border),
+                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px",
+                  color: i === 0 ? COLORS.accent : COLORS.textMuted, fontFamily: FONTS.display,
+                }}>{member.name.split(" ").map(n => n[0]).join("")}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "14px", color: COLORS.text, fontWeight: "500" }}>{member.name}</div>
+                  <div style={{ fontSize: "12px", color: COLORS.textDim }}>{member.role} · Since {member.since}</div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+
+    const NotificationsView = () => (
+      <div>
+        <SectionHeader title="Notifications" />
+        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+          {NOTIFICATIONS.map((n) => (
+            <Card key={n.id} highlight={n.unread}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "0" }}>
+                {n.unread && <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: COLORS.accent, flexShrink: 0 }} />}
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: "14px", color: n.unread ? COLORS.text : COLORS.textMuted, margin: 0 }}>{n.message}</p>
+                  <span style={{ fontSize: "12px", color: COLORS.textDim }}>{n.time}</span>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+
+    const TorusPortal = () => {
+      const [loggedIn, setLoggedIn] = useState(false);
+      const [activeTab, setActiveTab] = useState("calendar");
+
+      if (!loggedIn) return <LoginScreen onLogin={() => setLoggedIn(true)} />;
+
+      const unreadCount = NOTIFICATIONS.filter(n => n.unread).length;
+
+      const tabs = {
+        calendar: <CalendarView />,
+        blog: <BlogView />,
+        videos: <VideoView />,
+        podcast: <PodcastView />,
+        members: <MembersView />,
+        notifications: <NotificationsView />,
+      };
+
+      return (
+        <div style={{
+          display: "flex", minHeight: "100vh", background: COLORS.bg,
+          fontFamily: FONTS.body, color: COLORS.text,
+        }}>
+          <aside style={{
+            width: "240px", background: COLORS.bgCard, borderRight: "1px solid " + COLORS.border,
+            padding: "24px 16px", display: "flex", flexDirection: "column", flexShrink: 0,
+            position: "fixed", top: 0, left: 0, bottom: 0, overflowY: "auto",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "0 8px", marginBottom: "36px" }}>
+              <TorusIcon size={28} />
+              <div>
+                <div style={{ fontFamily: FONTS.display, fontSize: "18px", letterSpacing: "2px", color: COLORS.text }}>TORUS</div>
+                <div style={{ fontSize: "10px", letterSpacing: "2px", color: COLORS.textDim, textTransform: "uppercase" }}>Men's Circle</div>
+              </div>
+            </div>
+
+            <nav style={{ display: "flex", flexDirection: "column", gap: "2px", flex: 1 }}>
+              <NavItem icon={"\u25C9"} label="Calendar" active={activeTab === "calendar"} onClick={() => setActiveTab("calendar")} />
+              <NavItem icon={"\u25C8"} label="Field Notes" active={activeTab === "blog"} onClick={() => setActiveTab("blog")} />
+              <NavItem icon={"\u25B7"} label="Videos" active={activeTab === "videos"} onClick={() => setActiveTab("videos")} />
+              <NavItem icon={"\u25CE"} label="Podcast" active={activeTab === "podcast"} onClick={() => setActiveTab("podcast")} />
+              <NavItem icon={"\u2295"} label="The Circle" active={activeTab === "members"} onClick={() => setActiveTab("members")} />
+              <div style={{ height: "1px", background: COLORS.border, margin: "12px 0" }} />
+              <NavItem icon={"\u2298"} label="Notifications" active={activeTab === "notifications"} onClick={() => setActiveTab("notifications")} badge={unreadCount} />
+            </nav>
+
+            <div style={{
+              padding: "16px 8px", borderTop: "1px solid " + COLORS.border, marginTop: "auto",
+              display: "flex", alignItems: "center", gap: "10px",
+            }}>
+              <div style={{
+                width: "32px", height: "32px", borderRadius: "50%", background: COLORS.bgActive,
+                border: "1px solid " + COLORS.border, display: "flex", alignItems: "center",
+                justifyContent: "center", fontSize: "12px", color: COLORS.textMuted,
+              }}>DM</div>
+              <div>
+                <div style={{ fontSize: "13px", color: COLORS.text }}>Dave M.</div>
+                <div style={{ fontSize: "11px", color: COLORS.textDim }}>Member</div>
+              </div>
+            </div>
+          </aside>
+
+          <main style={{
+            flex: 1, padding: "40px 48px", marginLeft: "240px",
+            maxWidth: "760px", overflowY: "auto", minHeight: "100vh",
+          }}>
+            {tabs[activeTab]}
+          </main>
+        </div>
+      );
+    };
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<TorusPortal />);
+  </script>
+</body>
+</html>

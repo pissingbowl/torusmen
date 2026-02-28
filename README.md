@@ -1,2 +1,0 @@
-# torusmen
-TORUS MENS CIRCLE
